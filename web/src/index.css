@@ -1,0 +1,27 @@
+:root {
+  color-scheme: light;
+  --bg: #eef0fb;
+  --ink: #2d3140;
+  --card-bg: #fff6ea;
+  --accent: #f4a53e;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+#root {
+  min-height: 100dvh;
+}

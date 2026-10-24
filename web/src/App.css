@@ -1,0 +1,262 @@
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+  gap: 10px;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.app__header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #d8572b;
+  letter-spacing: 0.02em;
+}
+
+.difficulty-switch {
+  display: flex;
+  gap: 6px;
+  background: #ffffffaa;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.difficulty-switch__btn {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: #5b5f72;
+  cursor: pointer;
+}
+
+.difficulty-switch__btn--active {
+  background: #f4a53e;
+  color: white;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #ffffffaa;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffb677, #f4784a);
+  transition: width 0.3s ease;
+}
+
+.bead-board-wrap {
+  background: #d7e8f7;
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: inset 0 2px 10px rgba(30, 60, 100, 0.18);
+}
+
+.bead-board-canvas {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  touch-action: none;
+}
+
+.bead-tray {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fde8cf;
+  border: 1px solid #f0cda0;
+  border-radius: 18px;
+  padding: 10px 14px;
+}
+
+.bead-tray--done {
+  justify-content: center;
+  font-weight: 600;
+  color: #d8572b;
+}
+
+.bead-tray__current {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.bead-tray__slots {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.bead-tray__slot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px dashed #d7b488;
+  background: transparent;
+}
+
+.bead-tray__slot--full {
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.bead-tray__slot--pop {
+  animation: slot-pop 0.25s ease;
+}
+
+@keyframes slot-pop {
+  0% {
+    transform: scale(1.5);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.bead-tray__overflow {
+  font-size: 0.8rem;
+  color: #a36a2f;
+  font-weight: 600;
+}
+
+.tool-dock {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.tool-dock__btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(180deg, #ffd9a0, #f4a53e);
+  box-shadow: 0 3px 0 #c97e1f, 0 4px 8px rgba(0, 0, 0, 0.15);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.tool-dock__btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #c97e1f, 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.tool-dock__btn:disabled {
+  background: #d8d8d8;
+  box-shadow: 0 3px 0 #b7b7b7;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tool-dock__badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #3fae4f;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 30, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  width: min(320px, 85vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-card h2 {
+  margin: 0 0 4px;
+}
+
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.modal-btn {
+  border: none;
+  background: #f4a53e;
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-btn--danger {
+  background: #e25d4d;
+}
+
+.completion-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 30, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.completion-card {
+  background: #fff6ea;
+  border-radius: 20px;
+  padding: 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(300px, 85vw);
+}
+
+.completion-card__sparkle {
+  font-size: 2rem;
+}
+
+.completion-card h2 {
+  margin: 0;
+  color: #d8572b;
+}
