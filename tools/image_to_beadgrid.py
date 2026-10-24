@@ -2,7 +2,10 @@
 """Converts a source image into a bead/pixel grid level definition for the game.
 
 Usage:
-    python3 image_to_beadgrid.py <source.png> <output.json> [--cols N] [--colors K] [--preview out.png]
+    python3 image_to_beadgrid.py <source.png> <output.json> --id ID --title TITLE --difficulty easy|relax|challenge
+        [--modes journey,zen] [--cols N] [--colors K] [--preview out.png]
+
+Output follows level schema v1 (LEVEL_SCHEMA.md) and is validated before it is written.
 """
 import argparse
 import json
@@ -10,6 +13,8 @@ import sys
 from pathlib import Path
 
 from PIL import Image
+
+from validate_level import DIFFICULTIES, EMPTY_CELL, MODES, SCHEMA_VERSION, hex_to_rgb, validate
 
 
 def crop_to_content(im: Image.Image, bg_tolerance: int = 30) -> Image.Image:
@@ -171,28 +176,29 @@ def build_grid(
             }
         )
     remap = {old_id: new_id for new_id, old_id in enumerate(order)}
-    remapped_grid = [[remap[v] for v in row] for row in grid]
+    flat_cells = [remap[v] for row in grid for v in row]
 
     return {
-        "cols": cols,
-        "rows": rows,
+        "width": cols,
+        "height": rows,
         "palette": palette_entries,
-        "cells": remapped_grid,
+        "cells": flat_cells,
     }, small
 
 
 def render_preview(level: dict, cell_px: int = 20) -> Image.Image:
-    cols, rows = level["cols"], level["rows"]
+    width, height = level["width"], level["height"]
     palette = {p["id"]: p["hex"] for p in level["palette"]}
-    out = Image.new("RGB", (cols * cell_px, rows * cell_px), "white")
+    out = Image.new("RGB", (width * cell_px, height * cell_px), "white")
     px = out.load()
-    for r, row in enumerate(level["cells"]):
-        for c, color_id in enumerate(row):
-            hexcol = palette[color_id].lstrip("#")
-            rgb = tuple(int(hexcol[i : i + 2], 16) for i in (0, 2, 4))
-            for yy in range(cell_px):
-                for xx in range(cell_px):
-                    px[c * cell_px + xx, r * cell_px + yy] = rgb
+    for i, color_id in enumerate(level["cells"]):
+        if color_id == EMPTY_CELL:
+            continue
+        x, y = i % width, i // width
+        rgb = hex_to_rgb(palette[color_id])
+        for yy in range(cell_px):
+            for xx in range(cell_px):
+                px[x * cell_px + xx, y * cell_px + yy] = rgb
     return out
 
 
@@ -206,15 +212,35 @@ def main():
     ap.add_argument("--crop", type=str, help="x0,y0,x1,y1")
     ap.add_argument("--isolate", action="store_true", help="isolate largest warm-colored subject from background clutter")
     ap.add_argument("--min-color-frac", type=float, default=0.0, help="merge palette colors smaller than this fraction of total cells into their nearest neighbor")
+    ap.add_argument("--id", required=True, help="stable level id, e.g. squid_relax_01")
+    ap.add_argument("--title", required=True)
+    ap.add_argument("--difficulty", required=True, choices=DIFFICULTIES)
+    ap.add_argument("--modes", default="journey,zen", help="comma-separated subset of: " + ",".join(MODES))
     args = ap.parse_args()
 
     manual_crop = None
     if args.crop:
         manual_crop = tuple(int(v) for v in args.crop.split(","))
 
-    level, _ = build_grid(args.source, args.cols, args.colors, manual_crop, args.isolate, args.min_color_frac)
-    Path(args.output).write_text(json.dumps(level))
-    print(f"wrote {args.output}: {level['cols']}x{level['rows']} cells, {len(level['palette'])} colors")
+    grid, _ = build_grid(args.source, args.cols, args.colors, manual_crop, args.isolate, args.min_color_frac)
+    level = {
+        "schema_version": SCHEMA_VERSION,
+        "id": args.id,
+        "title": args.title,
+        "difficulty": args.difficulty,
+        "modes": [m.strip() for m in args.modes.split(",") if m.strip()],
+        **grid,
+    }
+
+    issues = validate(level)
+    for issue in issues:
+        print(f"  {issue}")
+    if any(i.severity == "error" for i in issues):
+        print(f"not writing {args.output}: level failed validation", file=sys.stderr)
+        sys.exit(1)
+
+    Path(args.output).write_text(json.dumps(level, ensure_ascii=False), encoding="utf-8")
+    print(f"wrote {args.output}: {level['width']}x{level['height']} cells, {len(level['palette'])} colors")
     for p in level["palette"]:
         print(f"  color {p['id']}: {p['hex']} x{p['count']}")
 
