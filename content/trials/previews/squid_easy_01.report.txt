@@ -1,0 +1,37 @@
+level squid_easy_01: 20x15 = 300 ô, 8 màu
+crop nguồn (39, 71, 1383, 1087), mask coverage: 38.4% ảnh gốc, 44.3% vùng crop
+ô chủ thể 137, ô nền (mask loại khỏi chủ thể) 163
+ô biên có chủ thể nhưng bị loại (coverage < 0.5): 51; ô biên được nhận vào chủ thể dù có một phần nền: 61
+silhouette: IoU 0.832, recall 0.922 (phần mask được lưới phủ), precision 0.895
+mảnh chủ thể rời nhau (8-kề): 1 — kích thước [137]
+ô đầu xúc tu được giữ (coverage < 0.5 nhưng là phần nhô bị mất): 4 [(15, 12), (16, 12), (16, 13), (18, 7)]
+
+màu (id, tên, vai trò, hex, số ô, màu gần nhất ΔE00):
+   0 water          background #1e9ad8    91   26.5 với 2:water_deep
+   1 body           subject    #f74a2e    84   17.2 với 3:shadow
+   2 water_deep     background #0b5486    72   26.5 với 0:water
+   3 shadow         subject    #b52a26    22   15.0 với 5:deep_red
+   4 cream          subject    #fbcda2    17   15.1 với 7:eye_white
+   5 deep_red       subject    #6e1416     7   15.0 với 3:shadow
+   6 dark           subject    #2a1419     5   18.7 với 5:deep_red
+   7 eye_white      subject    #fff6e8     2   15.1 với 4:cream
+
+chi tiết được bảo toàn (preserve_min_area):
+  dark       vùng 8534px tại ảnh gốc (795, 432, 929, 556): đã có ô [(12, 5), (12, 6), (11, 6)]
+  dark       vùng 5657px tại ảnh gốc (571, 370, 649, 494): đã có ô [(8, 4), (8, 5)]
+  eye_white  vùng 3224px tại ảnh gốc (839, 466, 912, 584): đặt thêm ô [(12, 7)] (thay body)
+  eye_white  vùng 2686px tại ảnh gốc (554, 392, 615, 511): đã có ô [(7, 5)]
+  deep_red   vùng 1137px tại ảnh gốc (655, 511, 711, 562): đã có ô [(9, 6)]
+
+phần nhô của mask bị lưới làm mất (> 1/2 ô tính từ ô chủ thể gần nhất):
+  không có
+nền bị nhận nhầm vào chủ thể (> 1/2 ô tính từ mask):
+  không có
+
+cặp màu nằm cạnh nhau có ΔE00 thấp nhất (viền chủ thể yếu nếu ΔE00 < 20.0):
+  shadow / deep_red: ΔE00 15.0, tương phản sáng 1.87:1, 5 cạnh kề
+  body / shadow: ΔE00 17.2, tương phản sáng 1.80:1, 18 cạnh kề
+  water / water_deep: ΔE00 26.5, tương phản sáng 2.54:1, 32 cạnh kề
+  shadow / dark: ΔE00 31.2, tương phản sáng 2.74:1, 1 cạnh kề
+  body / cream: ΔE00 31.2, tương phản sáng 2.40:1, 27 cạnh kề
+  body / deep_red: ΔE00 31.6, tương phản sáng 3.37:1, 10 cạnh kề

@@ -1,0 +1,13 @@
+{
+  "colors": [
+    {"name": "dark", "hex": "#2a1419", "role": "subject", "min_share": 0.25, "preserve_min_area": 1000},
+    {"name": "eye_white", "hex": "#fff6e8", "role": "subject", "min_share": 0.3, "preserve_min_area": 1500},
+    {"name": "deep_red", "hex": "#6e1416", "role": "subject", "min_share": 0.2, "preserve_min_area": 500,
+     "preserve_regions": [[650, 505, 750, 590]]},
+    {"name": "body", "hex": "#f74a2e", "role": "subject"},
+    {"name": "shadow", "hex": "#b52a26", "role": "subject"},
+    {"name": "cream", "hex": "#fbcda2", "role": "subject"},
+    {"name": "water", "hex": "#1e9ad8", "role": "background"},
+    {"name": "water_deep", "hex": "#0b5486", "role": "background"}
+  ]
+}

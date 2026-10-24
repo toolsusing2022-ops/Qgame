@@ -1,0 +1,19 @@
+{
+  "colors": [
+    {"name": "body", "hex": "#f65c33", "role": "subject"},
+    {"name": "body_dark", "hex": "#c9362f", "role": "subject"},
+    {"name": "shadow", "hex": "#8c2b2b", "role": "subject"},
+    {"name": "highlight", "hex": "#fb9a62", "role": "subject"},
+    {"name": "sucker", "hex": "#e6b9a6", "role": "subject"},
+    {"name": "pupil", "hex": "#261716", "role": "subject", "min_share": 0.25, "preserve_min_area": 1000},
+    {"name": "eye_white", "hex": "#fbf0d2", "role": "subject", "preserve_min_area": 500,
+     "preserve_regions": [[570, 495, 655, 610], [760, 570, 880, 700]]},
+    {"name": "surface", "hex": "#b9e6ee", "role": "background"},
+    {"name": "water_bright", "hex": "#1aa0de", "role": "background"},
+    {"name": "water", "hex": "#0a74b4", "role": "background"},
+    {"name": "water_deep", "hex": "#0b4f80", "role": "background"},
+    {"name": "reef_dark", "hex": "#2c4446", "role": "background"},
+    {"name": "reef_brown", "hex": "#6b4f48", "role": "background"},
+    {"name": "sand", "hex": "#b4c4b4", "role": "background"}
+  ]
+}
