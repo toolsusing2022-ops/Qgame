@@ -3,6 +3,27 @@
 extends RefCounted
 
 var failures: PackedStringArray = []
+var tree: SceneTree              # set by the runner
+var _nodes: Array[Node] = []
+
+
+# Adds a node to the scene tree for the duration of the test; freed in teardown().
+func add_to_tree(n: Node) -> Node:
+	tree.root.add_child(n)
+	_nodes.append(n)
+	return n
+
+
+func frames(n: int) -> void:
+	for k in n:
+		await tree.process_frame
+
+
+func teardown() -> void:
+	for n in _nodes:
+		if is_instance_valid(n):
+			n.free()
+	_nodes.clear()
 
 
 func assert_true(cond: bool, msg := "") -> void:

@@ -35,7 +35,9 @@ func _init() -> void:
 			if filter != "" and not label.contains(filter):
 				continue
 			var t = script.new()
-			t.call(mname)
+			t.tree = self
+			await t.call(mname)      # tests may await frames; plain tests return immediately
+			t.teardown()
 			if t.failures.is_empty():
 				passed += 1
 				print("PASS ", label)

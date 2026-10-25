@@ -26,6 +26,18 @@ func in_session() -> bool:
 	return _in_session
 
 
+func touch_positions() -> Array:
+	return _touches.values()
+
+
+func session_down_pos() -> Vector2:
+	return _down_pos
+
+
+func session_max_fingers() -> int:
+	return _max_fingers
+
+
 func touch_down(index: int, pos: Vector2, t_ms: int, camera_moving: bool) -> void:
 	if not _in_session:
 		_in_session = true
