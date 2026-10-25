@@ -1,0 +1,51 @@
+{
+  "F1.json": [],
+  "F10_layout_changed.json": [],
+  "F11_tie.json": [],
+  "F14_duplicate_color.json": [
+    "duplicate_color"
+  ],
+  "F4a_missing_title.json": [
+    "missing_field"
+  ],
+  "F4b_cells_2d.json": [
+    "cells_not_flat"
+  ],
+  "F4c_bad_hex.json": [
+    "bad_hex"
+  ],
+  "F4d_palette_id.json": [
+    "palette_id"
+  ],
+  "F4e_unknown_color_9.json": [
+    "unknown_color",
+    "unused_color"
+  ],
+  "F4f_unknown_color_neg2.json": [
+    "unknown_color",
+    "unused_color"
+  ],
+  "F4g_cell_1_5.json": [
+    "bad_cell_value"
+  ],
+  "F5_count_mismatch.json": [
+    "count_mismatch"
+  ],
+  "F6_unused_color.json": [
+    "unused_color"
+  ],
+  "F7_no_playable.json": [
+    "no_playable_cells",
+    "unused_color"
+  ],
+  "F8_grid_size.json": [
+    "grid_size"
+  ],
+  "F8b_width_129.json": [
+    "grid_size"
+  ],
+  "F8c_width_0.json": [
+    "grid_size"
+  ],
+  "F9_hex_changed.json": []
+}

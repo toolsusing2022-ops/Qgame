@@ -1,0 +1,1 @@
+{"schema_version": 1, "id": "fixture_f1", "title": "F1", "difficulty": "easy", "modes": ["journey", "zen"], "width": 3, "height": 2, "palette": [{"id": 0, "hex": "#2f86b8", "count": 2}, {"id": 1, "hex": "e2553d", "count": 2}, {"id": 2, "hex": "#f3dcd2", "count": 1}], "cells": [0, 1, 2, -1, 0, 1]}

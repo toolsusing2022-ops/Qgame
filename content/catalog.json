@@ -1,0 +1,19 @@
+{
+  "catalog_version": 1,
+  "levels": [
+    {
+      "level_id": "squid_easy_01",
+      "file": "trials/squid_easy_01.json",
+      "content_version": 1,
+      "layout_hash": "b9e42886bd7efcd58b1e9900a8f7833561e90563c97ee05a9a773e7e1409868a",
+      "content_hash": "7bd4c12163fe9e45c5fb8618d7b0cac65899c1f508019b1c1b8befc54b081d6d"
+    },
+    {
+      "level_id": "squid_relax_01",
+      "file": "levels/squid_relax_01.json",
+      "content_version": 1,
+      "layout_hash": "84dc7020154b52c4fb179fcea1e7495e7ae10a7dfd78c18cbe54a4f02bc59d56",
+      "content_hash": "cf52d081dcee801aac6b35b9a128db6a7211cddab610b1ffeaa6303849d453f5"
+    }
+  ]
+}
