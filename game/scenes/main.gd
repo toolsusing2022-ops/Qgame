@@ -1,13 +1,24 @@
-# Entry scene: level list from content/catalog.json, then the play screen.
+# Entry scene: app services (storage backend, event store, settings), startup pending scan, level list from
+# content/catalog.json, then the play screen.
 extends Control
 
 const Config := preload("res://game/core/config.gd")
 const Play := preload("res://game/scenes/play.gd")
+const GodotFileBackend := preload("res://game/storage/godot_file_backend.gd")
+const EventStore := preload("res://game/events/event_store.gd")
+const Dispatcher := preload("res://game/events/dispatcher.gd")
+const Settings := preload("res://game/save/settings.gd")
+const PendingScan := preload("res://game/save/pending_scan.gd")
 
 const CATALOG_PATH := "res://content/catalog.json"
+const PROGRESS_DIR := "user://progress"
 const DIFFICULTY_LABEL := {"easy": "Dễ", "relax": "Thư giãn", "challenge": "Thử thách"}
 
+var backend
+var dispatcher
+var settings
 var _list: VBoxContainer
+var _message: Label
 var _play: Control
 
 
@@ -17,6 +28,12 @@ func _ready() -> void:
 		push_error("Cấu hình tham số sai: %s" % ", ".join(errors))   # TC-5.23
 		get_tree().quit(1)
 		return
+	backend = GodotFileBackend.new()
+	dispatcher = Dispatcher.new(EventStore.new(backend))
+	settings = Settings.new(backend)
+	settings.load_or_create()
+	PendingScan.run(backend, dispatcher, PROGRESS_DIR, Time.get_ticks_msec())   # GS-14.9
+
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var bg := ColorRect.new()
 	bg.color = Color("#e9e2d6")
@@ -36,6 +53,9 @@ func _ready() -> void:
 	_list.add_child(title)
 	for entry in _load_catalog():
 		_add_level_button(entry)
+	_message = Label.new()
+	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_list.add_child(_message)
 
 
 func _load_catalog() -> Array:
@@ -57,15 +77,18 @@ func _add_level_button(entry: Dictionary) -> void:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(0, 56)
-	b.pressed.connect(func(): open_level(path))
+	b.pressed.connect(func(): open_level(path, entry))
 	_list.add_child(b)
 
 
-func open_level(path: String) -> void:
+func open_level(path: String, entry := {"content_version": 1}) -> void:
+	_message.text = ""
 	_play = Play.new()
 	add_child(_play)
 	_play.exit_requested.connect(_close_level)
-	if not _play.load_level_file(path):
+	var r: Dictionary = _play.open_level(path, entry, backend, dispatcher, settings, PROGRESS_DIR)
+	if not r.get("ok", false):
+		_message.text = r.get("message", "Không mở được tranh này")
 		_close_level()
 		return
 	_list.get_parent().visible = false

@@ -212,10 +212,13 @@ static func validate(data: Variant) -> Dictionary:
 	var pal_arr: Array = d["palette"]
 	level.hexes.resize(pal_arr.size())
 	level.counts.resize(pal_arr.size())
+	level.names.resize(pal_arr.size())
 	for i in pal_arr.size():
 		level.hexes[i] = palette_hex[i]
 		level.colors.append(Color.html(palette_hex[i]))
 		level.counts[i] = int(pal_arr[i]["count"])
+		var nm = pal_arr[i].get("name", "")
+		level.names[i] = nm if typeof(nm) == TYPE_STRING else ""
 	level.cells = cells_int
 	return _result(PackedStringArray(), level)
 

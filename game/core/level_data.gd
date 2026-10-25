@@ -11,6 +11,7 @@ var modes: PackedStringArray
 var width: int
 var height: int
 var hexes: PackedStringArray      # lowercase "#rrggbb", index = palette id
+var names: PackedStringArray      # palette[].name, "" when absent
 var colors: Array[Color] = []
 var counts: PackedInt32Array      # palette[].count, equal to the counted cells
 var cells: PackedInt32Array       # row-major, cells[y * width + x]

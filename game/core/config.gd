@@ -18,6 +18,13 @@ const SNAP_TO_NEAREST := false          # hypothesis H1
 
 const BOARD_SIDE_MARGIN := 16.0         # pt
 
+# Saving and events (sections 12-14, spec v0.4 .. v0.4.9).
+const SAVE_VERSION := 1
+const PALETTE_RECOLOR_MAX_DE := 20.0
+const OUTBOX_RETRY_MIN_INTERVAL_S := 60
+const SAVE_BLOCK_AFTER_FAILURES := 3
+const SAVE_BLOCKED_RETRY_INTERVAL_S := 30
+
 
 # Returns an empty array when the ordering constraint of section 0.2 holds (TC-5.23).
 static func constraint_errors(number_visible := NUMBER_VISIBLE_CELL, min_place := MIN_PLACE_CELL,

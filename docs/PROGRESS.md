@@ -1,6 +1,6 @@
 # Tiến trình dự án Pixel Bead Art ASMR
 
-Cập nhật: 2026-10-24. Nhánh làm việc: `claude/cloud-session-connection-check-hksw4v`.
+Cập nhật: 2026-10-25. Nhánh làm việc: `claude/cloud-session-connection-check-hksw4v`.
 
 ## Mục tiêu
 
@@ -16,9 +16,11 @@ Game Pixel Bead Art ASMR, ưu tiên iPhone, iPad làm sau.
 | Prototype web | `web/` (React) | `5dfb1fe` |
 | Bước 1 | Schema level v1 (`tools/LEVEL_SCHEMA.md`) và validator `tools/validate_level.py` (CIEDE2000, WCAG, `--strict`) | `8feed74` |
 | Bước 2 | Sinh level theo mask (`tools/image_to_beadgrid.py`), `tools/draft_mask.py`, `tools/level_review.py`; level `content/levels/squid_relax_01.json` (32×32, 14 màu) và `content/trials/squid_easy_01.json` (20×15, 8 màu), kèm preview | `6fe07e8` |
-| Đặc tả | Đặc tả gameplay MVP v0.1 → v0.4.9 trong `docs/spec/` | commit hiện tại |
-| Nghiên cứu | `docs/research/gameplay_research.md` | commit hiện tại |
-| Probe | `tools/probes/godot_storage/` (hành vi lưu trữ của Godot 4.4.1 trên Linux) | commit hiện tại |
+| Đặc tả | Đặc tả gameplay MVP v0.1 → v0.4.9 trong `docs/spec/` | `2eeb09b` |
+| Nghiên cứu | `docs/research/gameplay_research.md` | `2eeb09b` |
+| Probe | `tools/probes/godot_storage/` (hành vi lưu trữ của Godot 4.4.1 trên Linux) | `2eeb09b` |
+| Catalog + hash | `tools/level_hash.py`, `tools/build_catalog.py`, `content/catalog.json`, fixture dùng chung | `dac35bc` |
+| Game Godot (demo chơi được) | Project ở gốc repo, code trong `game/`: luật chơi, màn chơi, lưu/khôi phục theo đặc tả, sự kiện | xem `git log` |
 
 Các báo cáo từng bước nằm trong `docs/history/`.
 
@@ -31,15 +33,22 @@ Các báo cáo từng bước nằm trong `docs/history/`.
 
 ## Đang chờ
 
-1. Duyệt đặc tả **v0.4.9** (`docs/spec/gameplay_mvp_v0.4.9.md`).
-2. Cho phép bắt đầu **Giai đoạn 1**: viết code Godot (storage backend, progress writer, restore, event store) và chạy unit test trong container.
-3. Ảnh thumbnail 96 px của Easy vẫn nhỏ: mặt chỉ còn vài chấm. Đã đề xuất đơn giản hoá ảnh nguồn hoặc dùng thumbnail từ ảnh gốc.
+1. **Âm thanh** (đang chuẩn bị) → đặt vào `game/audio/<tên>/`.
+2. **Mac + iPhone** (đang chuẩn bị) → export iOS, test cấp D (Phần B của v0.4.9).
+3. Duyệt đặc tả **v0.4.9**.
+4. Ảnh thumbnail 96 px của Easy vẫn nhỏ: mặt chỉ còn vài chấm.
+
+Danh sách chi tiết những gì đã làm và chưa làm so với đặc tả: `docs/IMPLEMENTATION_STATUS.md`.
 
 ## Cách chạy kiểm tra hiện có
 
 ```bash
-# Test Python của công cụ nội dung (68 test, đạt ngày 2026-10-24)
+# Test Python (82 test, đạt ngày 2026-10-25)
 python3 -B -m unittest discover -s tools/tests -p 'test_*.py'
+python3 tools/build_catalog.py --check
+
+# Test Godot 4.4.1 headless (119 test, đạt ngày 2026-10-25)
+godot --headless --path . -s res://game/tests/run_unit.gd
 
 # Kiểm tra level
 python3 tools/validate_level.py --strict content/levels/squid_relax_01.json content/trials/squid_easy_01.json
@@ -61,6 +70,6 @@ Xem Phần B của `docs/spec/gameplay_mvp_v0.4.9.md`.
 
 ## Chưa kiểm chứng
 
-- Chưa có code Godot của game; chưa có TC-12.x, 13.x, 14.x nào được chạy.
+- Các TC cấp U/I đã chạy trên Linux headless; chưa có test nào chạy trên iOS.
 - Chưa có kết quả trên macOS hay iOS. Mọi năng lực lưu trữ đều ở mức `assumed`; không có `durable (verified)`.
 - Container không có Mac hay Xcode.
