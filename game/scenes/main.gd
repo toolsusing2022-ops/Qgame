@@ -9,6 +9,7 @@ const EventStore := preload("res://game/events/event_store.gd")
 const Dispatcher := preload("res://game/events/dispatcher.gd")
 const Settings := preload("res://game/save/settings.gd")
 const PendingScan := preload("res://game/save/pending_scan.gd")
+const LevelThumb := preload("res://game/scenes/level_thumb.gd")
 
 const CATALOG_PATH := "res://content/catalog.json"
 const PROGRESS_DIR := "user://progress"
@@ -50,7 +51,15 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "Chọn tranh"
 	title.add_theme_font_size_override("font_size", 26)
+	title.add_theme_color_override("font_color", Color("#2b2622"))
 	_list.add_child(title)
+	var help := Label.new()
+	help.text = "Chọn một màu ở khay, rồi chạm vào các ô có cùng số. Ô nhỏ quá thì chạm để phóng to; " \
+		+ "kéo để di chuyển, chụm hai ngón (hoặc lăn chuột) để zoom."
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.add_theme_color_override("font_color", Color("#5a524b"))
+	help.add_theme_font_size_override("font_size", 14)
+	_list.add_child(help)
 	for entry in _load_catalog():
 		_add_level_button(entry)
 	_message = Label.new()
@@ -72,12 +81,29 @@ func _add_level_button(entry: Dictionary) -> void:
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(path))
 	var label: String = entry["level_id"]
 	if typeof(meta) == TYPE_DICTIONARY:
-		label = "%s — %s (%dx%d)" % [meta.get("title", label), DIFFICULTY_LABEL.get(meta.get("difficulty", ""), ""),
+		label = "%s\n%s · %d×%d" % [meta.get("title", label), DIFFICULTY_LABEL.get(meta.get("difficulty", ""), ""),
 			int(meta.get("width", 0)), int(meta.get("height", 0))]
 	var b := Button.new()
-	b.text = label
-	b.custom_minimum_size = Vector2(0, 56)
+	b.custom_minimum_size = Vector2(0, 112)
 	b.pressed.connect(func(): open_level(path, entry))
+	var row := HBoxContainer.new()
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 12)
+	b.add_child(row)
+	var thumb := LevelThumb.new()
+	thumb.custom_minimum_size = Vector2(96, 96)
+	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if typeof(meta) == TYPE_DICTIONARY:
+		thumb.setup(meta)
+	row.add_child(thumb)
+	var text := Label.new()
+	text.text = label
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(text)
 	_list.add_child(b)
 
 

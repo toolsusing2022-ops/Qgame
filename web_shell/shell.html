@@ -1,0 +1,153 @@
+<meta charset="utf-8">
+<title>Tranh hạt Mực Biếc</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Phone-frame stage for the Godot web export: the game canvas keeps the 390:844 portrait ratio of the iPhone
+   layout and fills the available height on desktop, the whole screen on a phone. Single deliberate look. */
+:root {
+	--ground: #1f2a2e;      /* deep sea slate around the stage */
+	--stage: #e9e2d6;       /* the game's own paper background, shown while loading */
+	--ink: #e9e2d6;
+	--muted: #9fb0b4;
+	--accent: #f65c33;      /* squid body red */
+	--font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+	color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+	margin: 0;
+	background: var(--ground);
+	color: var(--ink);
+	font-family: var(--font);
+	overflow: hidden;
+	touch-action: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding-block: 12px;
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+	box-sizing: border-box;
+}
+#stage {
+	position: relative;
+	background: var(--stage);
+	border-radius: 22px;
+	overflow: hidden;
+	box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+	max-width: 100%;
+}
+#canvas { display: block; width: 100%; height: 100%; }
+#canvas:focus { outline: none; }
+#status {
+	position: absolute; inset: 0;
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+	background: var(--stage); color: #2b2622; text-align: center; padding: 24px; box-sizing: border-box;
+}
+#status h1 { font-size: 22px; margin: 0; font-weight: 600; text-wrap: balance; }
+#status p { margin: 0; font-size: 14px; color: #5a524b; max-width: 30ch; }
+#bar { width: 60%; height: 6px; border-radius: 3px; background: #d6cdbf; overflow: hidden; }
+#bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+#notice { color: #8a1f1f; font-size: 14px; white-space: pre-line; }
+footer { font-size: 12px; color: var(--muted); text-align: center; max-width: 60ch; line-height: 1.5; }
+footer a { color: var(--muted); }
+@media (max-width: 520px) {
+	body { padding: 0; gap: 0; }
+	#stage { border-radius: 0; box-shadow: none; }
+	footer { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { #bar > i { transition: none; } }
+</style>
+$GODOT_HEAD_INCLUDE
+<div id="stage">
+	<canvas id="canvas" tabindex="0">Trình duyệt này không hỗ trợ canvas.</canvas>
+	<div id="status">
+		<h1>Tranh hạt Mực Biếc</h1>
+		<p>Đang tải bản demo, khoảng 15 MB sau khi nén…</p>
+		<div id="bar"><i></i></div>
+		<div id="notice"></div>
+	</div>
+</div>
+<footer>
+	Bản demo web. Tiến độ được lưu trong trình duyệt này.
+	Âm thanh: Kenney Interface Sounds (CC0) và âm nền tự tạo · Icon: Lucide (ISC) · Font: Be Vietnam Pro (OFL).
+</footer>
+<script>
+// Some hosts cap file size and only serve known extensions. tools/web/package_web.py can split the engine's
+// .wasm into index.partN.wasm files (WASM_PARTS) and give the .pck a served name (PCK_ALIAS); this shim maps
+// the stock Godot loader's requests onto them. Both stay 0/"" for ordinary hosting.
+(function () {
+	const WASM_PARTS = 0;
+	const PCK_ALIAS = "";
+	if (!WASM_PARTS && !PCK_ALIAS) return;
+	const realFetch = window.fetch.bind(window);
+	window.fetch = function (input, init) {
+		const url = typeof input === 'string' ? input : (input && input.url) || '';
+		const clean = url.replace(/(\?.*)?$/, '');
+		if (PCK_ALIAS && /\.pck$/.test(clean)) {
+			return realFetch(clean.replace(/[^/]*$/, PCK_ALIAS), init);
+		}
+		if (!WASM_PARTS || !/\.wasm$/.test(clean)) return realFetch(input, init);
+		const base = clean.replace(/\.wasm$/, '');
+		const parts = [];
+		for (let i = 0; i < WASM_PARTS; i++) {
+			parts.push(realFetch(base + '.part' + i + '.wasm').then((r) => {
+				if (!r.ok) throw new Error('Không tải được phần ' + i + ' của engine (' + r.status + ')');
+				return r.blob();
+			}));
+		}
+		return Promise.all(parts).then((blobs) => {
+			const blob = new Blob(blobs, { type: 'application/wasm' });
+			return new Response(blob, { status: 200, headers: {
+				'Content-Type': 'application/wasm', 'Content-Length': String(blob.size) } });
+		});
+	};
+}());
+
+// Fit the 390:844 portrait stage into the window.
+(function () {
+	const stage = document.getElementById('stage');
+	const canvas = document.getElementById('canvas');
+	function fit() {
+		const small = window.innerWidth <= 520;
+		const availH = window.innerHeight - (small ? 0 : 64);
+		const availW = window.innerWidth - (small ? 0 : 32);
+		let h = availH, w = h * 390 / 844;
+		if (w > availW) { w = availW; h = small ? availH : w * 844 / 390; }
+		stage.style.width = Math.floor(w) + 'px';
+		stage.style.height = Math.floor(h) + 'px';
+		const dpr = window.devicePixelRatio || 1;
+		canvas.width = Math.floor(w * dpr);
+		canvas.height = Math.floor(h * dpr);
+	}
+	window.addEventListener('resize', fit);
+	fit();
+}());
+</script>
+<script src="$GODOT_URL"></script>
+<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+(function () {
+	const status = document.getElementById('status');
+	const bar = document.querySelector('#bar > i');
+	const notice = document.getElementById('notice');
+	function fail(err) {
+		console.error(err);
+		notice.textContent = (err && err.message) ? err.message : String(err);
+	}
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+	if (missing.length !== 0) {
+		fail('Trình duyệt thiếu tính năng cần cho Godot:\n' + missing.join('\n'));
+		return;
+	}
+	engine.startGame({
+		onProgress: function (current, total) {
+			if (current > 0 && total > 0) bar.style.width = Math.round(100 * current / total) + '%';
+		},
+	}).then(() => { status.remove(); document.getElementById('canvas').focus(); }, fail);
+}());
+</script>

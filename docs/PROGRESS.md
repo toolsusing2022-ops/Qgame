@@ -1,6 +1,6 @@
 # Tiến trình dự án Pixel Bead Art ASMR
 
-Cập nhật: 2026-10-25. Nhánh làm việc: `claude/cloud-session-connection-check-hksw4v`.
+Cập nhật: 2026-10-27. Nhánh làm việc: `claude/cloud-session-connection-check-hksw4v`.
 
 ## Mục tiêu
 
@@ -24,6 +24,18 @@ Game Pixel Bead Art ASMR, ưu tiên iPhone, iPad làm sau.
 
 Các báo cáo từng bước nằm trong `docs/history/`.
 
+## Bản demo web
+
+- Âm thanh, font, icon và nguồn/giấy phép: `docs/ASSETS.md`.
+- Build lại bản web (cần export template `web_nothreads_release.zip` của 4.4.1 trong `~/.local/share/godot/export_templates/4.4.1.stable/`):
+
+```bash
+godot --headless --path . --export-release "Web" build/web/index.html
+# host thường (GitHub Pages, itch.io, máy chủ tĩnh): phục vụ build/web nguyên trạng
+# host giới hạn 15 MB/file và loại file (artifact claude.ai):
+cp -r build/web build/web_split && python3 tools/web/package_web.py build/web_split --pck-alias index.pck.wasm
+```
+
 ## Quyết định đã chốt
 
 - **A.** Chuyển sang Godot; giữ `web/` làm tham khảo.
@@ -33,7 +45,7 @@ Các báo cáo từng bước nằm trong `docs/history/`.
 
 ## Đang chờ
 
-1. **Âm thanh** (đang chuẩn bị) → đặt vào `game/audio/<tên>/`.
+1. **Âm thanh**: đã có bộ tạm (Kenney CC0 + âm tự tạo); thay bằng file của bạn trong `game/audio/<tên>/` khi có.
 2. **Mac + iPhone** (đang chuẩn bị) → export iOS, test cấp D (Phần B của v0.4.9).
 3. Duyệt đặc tả **v0.4.9**.
 4. Ảnh thumbnail 96 px của Easy vẫn nhỏ: mặt chỉ còn vài chấm.

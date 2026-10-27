@@ -12,6 +12,7 @@ var path := PATH
 var install_id := ""
 var sfx_enabled := true
 var haptic_enabled := true
+var ambient := "sea"              # off | sea | rain (GS-11.3)
 
 
 func _init(storage_backend, settings_path := PATH) -> void:
@@ -26,13 +27,14 @@ func load_or_create() -> void:
 		install_id = String(d.get("install_id", ""))
 		sfx_enabled = bool(d.get("sfx", true))
 		haptic_enabled = bool(d.get("haptic", true))
+		ambient = String(d.get("ambient", "sea"))
 	if install_id == "":
 		install_id = ProgressSession.new_uuid()
 		save()
 
 
 func save() -> bool:
-	var bytes := JSON.stringify({"install_id": install_id, "sfx": sfx_enabled, "haptic": haptic_enabled},
+	var bytes := JSON.stringify({"install_id": install_id, "sfx": sfx_enabled, "haptic": haptic_enabled, "ambient": ambient},
 		"", true).to_utf8_buffer()
 	var tmp := path + ".tmp"
 	if not backend.write_file(tmp, bytes)["ok"]:

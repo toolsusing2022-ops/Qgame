@@ -39,6 +39,7 @@ var _btn_find: Button
 var _btn_undo: Button
 var _btn_overview: Button
 var _btn_settings: Button
+var _btn_ambient: Button
 var _overlay: Control
 var _banner: Label
 var _hint_until_ms := 0
@@ -82,7 +83,8 @@ func start(board_state) -> void:
 	if settings != null:
 		feedback.sfx_enabled = settings.sfx_enabled
 		feedback.haptic_enabled = settings.haptic_enabled
-		_btn_settings.text = "Âm thanh" if feedback.sfx_enabled else "Tắt tiếng"
+		feedback.set_ambient(settings.ambient)
+	_update_sound_buttons()
 	_title.text = state.level.title
 	board.setup(state)
 	_build_tray()
@@ -114,7 +116,8 @@ func _build_ui() -> void:
 	top.custom_minimum_size = Vector2(0, 48)
 	root.add_child(top)
 	var back := Button.new()
-	back.text = "‹ Tranh"
+	back.text = "Tranh"
+	back.icon = _icon("chevron-left")
 	back.custom_minimum_size = Vector2(88, 44)
 	back.pressed.connect(_on_back)
 	top.add_child(back)
@@ -165,22 +168,53 @@ func _build_ui() -> void:
 	actions.custom_minimum_size = Vector2(0, 52)
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(actions)
-	_btn_find = _action_button(actions, "Tìm", _on_find)
-	_btn_undo = _action_button(actions, "Hoàn tác", _on_undo)
-	_btn_overview = _action_button(actions, "Toàn cảnh", func(): board.reset_view())
-	_btn_settings = _action_button(actions, "Âm thanh", _on_toggle_sound)
+	_btn_find = _action_button(actions, "Tìm", "search", _on_find)
+	_btn_undo = _action_button(actions, "Hoàn tác", "undo-2", _on_undo)
+	_btn_overview = _action_button(actions, "Toàn cảnh", "scan", func(): board.reset_view())
+	_btn_settings = _action_button(actions, "Âm thanh", "volume-2", _on_toggle_sound)
+	_btn_ambient = _action_button(actions, "Âm nền", "waves", _on_cycle_ambient)
 
 	_overlay = _build_overlay()
 	add_child(_overlay)
 
 
-func _action_button(parent: Control, text: String, cb: Callable) -> Button:
+func _action_button(parent: Control, text: String, icon_name: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(88, 44)
+	b.icon = _icon(icon_name)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_font_size_override("font_size", 12)
+	b.custom_minimum_size = Vector2(68, 56)     # >= 44 pt (GS-8.4)
 	b.pressed.connect(cb)
 	parent.add_child(b)
 	return b
+
+
+# Lucide icons (ISC), see game/assets/icons/LICENSE_lucide.txt.
+static func _icon(name: String) -> Texture2D:
+	var path := "res://game/assets/icons/%s.svg" % name
+	return load(path) if ResourceLoader.exists(path) else null
+
+
+func _update_sound_buttons() -> void:
+	_btn_settings.text = "Âm thanh" if feedback.sfx_enabled else "Tắt tiếng"
+	_btn_settings.icon = _icon("volume-2" if feedback.sfx_enabled else "volume-x")
+	var labels := {"off": ["Âm nền tắt", "bell-off"], "sea": ["Biển", "waves"], "rain": ["Mưa", "cloud-rain"]}
+	var l: Array = labels.get(feedback.ambient_name, labels["off"])
+	_btn_ambient.text = l[0]
+	_btn_ambient.icon = _icon(l[1])
+
+
+func _on_cycle_ambient() -> void:
+	var names: Array = feedback.AMBIENT_NAMES
+	var next: String = names[(names.find(feedback.ambient_name) + 1) % names.size()]
+	feedback.set_ambient(next)
+	_update_sound_buttons()
+	session.record_best_effort("setting_changed", {"key": "ambient", "value": next})
+	if settings != null:
+		settings.ambient = next
+		settings.save()
 
 
 func _build_overlay() -> Control:
@@ -243,6 +277,7 @@ func _on_cell_tapped(i: int) -> void:
 							s.nudge(1500)
 			if r["level_completed"]:
 				session.flush(true)          # GS-4.5: completed + level_complete in one atomic write
+				feedback.duck_ambient()
 				feedback.play("level_complete")
 				_show_completed(true)
 		BoardState.TAP_WRONG:
@@ -304,7 +339,7 @@ func _on_find() -> void:
 
 func _on_toggle_sound() -> void:
 	feedback.sfx_enabled = not feedback.sfx_enabled
-	_btn_settings.text = "Âm thanh" if feedback.sfx_enabled else "Tắt tiếng"
+	_update_sound_buttons()
 	session.record_best_effort("setting_changed", {"key": "sfx", "value": feedback.sfx_enabled})
 	if settings != null:
 		settings.sfx_enabled = feedback.sfx_enabled
