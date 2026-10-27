@@ -34,8 +34,9 @@ var _cell := 10.0
 var _tray_rect := Rect2()
 var _flights: Array = []          # {color, from, to, start, dest_cell | dest_slot}
 var _pending_cells := {}          # cell -> true while a bead is flying to it
-var _pending_slots := 0           # tray beads still in the air
+var _pending_slots := {}          # slot -> true while a bead is flying to it
 var _hint_cells := PackedInt32Array()
+var _hint_slots := PackedInt32Array()
 var _hint_until := 0
 var _shake_until := 0
 var _last_place_sound := 0
@@ -210,14 +211,14 @@ func _layout() -> void:
 	var actions: Control = get_node("Actions")
 	var actions_h := 52.0
 	var tray_h := (w - 2 * margin) / SortState.TRAY_COUNT * 0.9
-	var avail_h := size.y - 90.0 - tray_h - actions_h - 50.0
+	var avail_h := size.y - 90.0 - tray_h - actions_h - 76.0     # 76: tray gap + message line
 	_cell = minf((w - 2 * margin) / level.width, avail_h / level.height)
 	var bw: float = _cell * level.width
 	var bh: float = _cell * level.height
 	_board_rect = Rect2(Vector2((w - bw) * 0.5, 90.0 + (avail_h - bh) * 0.5), Vector2(bw, bh))
-	_msg.position = Vector2(16, _board_rect.end.y + 4)
-	_msg.size = Vector2(w - 32, 24)
-	_tray_rect = Rect2(Vector2(margin, _board_rect.end.y + 30), Vector2(w - 2 * margin, tray_h))
+	_tray_rect = Rect2(Vector2(margin, _board_rect.end.y + 16), Vector2(w - 2 * margin, tray_h))
+	_msg.position = Vector2(16, _tray_rect.end.y + 8)
+	_msg.size = Vector2(w - 32, 44)
 	actions.position = Vector2(0, size.y - actions_h - 6)
 	actions.size = Vector2(w, actions_h)
 	_overlay.position = Vector2(w * 0.5 - 140, size.y * 0.4 - 90)
@@ -247,12 +248,16 @@ func slot_radius() -> float:
 func _gui_input(event: InputEvent) -> void:
 	# Touches reach the GUI as emulated mouse events (and desktop mice as themselves), so one path covers both.
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		if _board_rect.has_point(event.position):
+		if _board_rect.grow(_cell * 0.5).has_point(event.position):
 			tap_board(event.position)
-			accept_event()
+		elif _tray_rect.grow(6).has_point(event.position):
+			tap_tray(event.position)
+		elif state != null and state.has_selection():
+			state.clear_selection()
+		accept_event()
 
 
-# A tap at a board position (also called by tests). Near misses snap to an actionable neighbour.
+# A tap at a board position (also called by tests). Near misses snap to a tappable neighbour.
 func tap_board(pos: Vector2) -> Dictionary:
 	if state == null or state.completed():
 		return {}
@@ -268,57 +273,80 @@ func tap_board(pos: Vector2) -> Dictionary:
 				if x < 0 or y < 0 or x >= level.width or y >= level.height:
 					continue
 				var i: int = y * level.width + x
-				if best < 0 and state.action_at(i) != "none" and not _pending_cells.has(i):
+				if best < 0 and state.cell_is_target(i) and not _pending_cells.has(i):
 					best = i
 		if best >= 0:
 			break
 	if best < 0:
+		best = clampi(gy, 0, level.height - 1) * level.width + clampi(gx, 0, level.width - 1)
+	return apply_cell(best)
+
+
+# A tap in the tray area: the nearest slot.
+func tap_tray(pos: Vector2) -> Dictionary:
+	if state == null or state.completed():
 		return {}
-	return apply_tap(best)
+	var best := 0
+	for s in SortState.CAPACITY:
+		if slot_center(s).distance_squared_to(pos) < slot_center(best).distance_squared_to(pos):
+			best = s
+	return apply_slot(best)
 
 
-func apply_tap(i: int) -> Dictionary:
-	var before_slots: Array = state.tray.duplicate()
-	var r: Dictionary = state.tap(i)
+func apply_cell(i: int) -> Dictionary:
+	var r: Dictionary = state.tap_cell(i)
 	var now := Time.get_ticks_msec()
 	match r["kind"]:
-		"lift":
-			feedback.play("pick")
+		"select":
+			feedback.play("pick", -4.0)
 			feedback.haptic_place()
-			var k := 0
-			for m in r["moves"]:
-				var to: Vector2
-				var f := {"color": m["color"], "from": cell_center(m["from_cell"]), "start": now + k * STAGGER_MS}
-				if m.has("to_cell"):
-					to = cell_center(m["to_cell"])
-					f["dest_cell"] = m["to_cell"]
-					_pending_cells[m["to_cell"]] = true
-				else:
-					to = slot_center(m["to_tray"])
-					f["dest_slot"] = m["to_tray"]
-					_pending_slots += 1
-				f["to"] = to
-				_flights.append(f)
-				k += 1
-			_dirty = true
-		"fill":
+		"place":
 			feedback.play("pick")
 			var k := 0
 			for m in r["moves"]:
-				_flights.append({"color": m["color"], "from": slot_center(m["from_tray"]), "to": cell_center(m["to_cell"]),
+				var from: Vector2 = cell_center(m["from_cell"]) + _lift_offset() if m.has("from_cell") \
+						else slot_center(m["from_slot"])
+				_flights.append({"color": m["color"], "from": from, "to": cell_center(m["to_cell"]),
 					"start": now + k * STAGGER_MS, "dest_cell": m["to_cell"]})
 				_pending_cells[m["to_cell"]] = true
 				k += 1
 			_dirty = true
+		"wrong_color":
+			feedback.play("wrong", -6.0)
+			_hint_cells = r["cells"]
+			_hint_until = now + 700
+			_say("Chỗ này cần hạt màu khác.", 1800)
+		"need_select":
+			_hint_cells = r["cells"]
+			_hint_until = now + 700
+			_say("Chọn một mảng hạt sai màu (hoặc hạt trong khay) trước, rồi chạm vào chỗ trống.", 2500)
+	_refresh()
+	return r
+
+
+func apply_slot(s: int) -> Dictionary:
+	var r: Dictionary = state.tap_slot(s)
+	var now := Time.get_ticks_msec()
+	match r["kind"]:
+		"select_tray":
+			feedback.play("pick", -4.0)
+			feedback.haptic_place()
+		"to_tray":
+			feedback.play("pick")
+			feedback.haptic_place()
+			var k := 0
+			for m in r["moves"]:
+				_flights.append({"color": m["color"], "from": cell_center(m["from_cell"]) + _lift_offset(),
+					"to": slot_center(m["to_slot"]), "start": now + k * STAGGER_MS, "dest_slot": m["to_slot"]})
+				_pending_slots[m["to_slot"]] = true
+				k += 1
+			if r["left"] > 0:
+				_say("Khay đã đầy, còn %d hạt chưa cất được." % r["left"], 2500)
+			_dirty = true
 		"tray_full":
 			feedback.play("wrong", -6.0)
 			_shake_until = now + 350
-			_say("Khay không đủ chỗ: cần %d ô trống, còn %d. Hãy lấp các chỗ trống trước." % [r["needed"], r["free"]], 3000)
-		"need_beads":
-			feedback.play("wrong", -6.0)
-			_hint_cells = r["cells"]
-			_hint_until = now + 900
-			_say("Chưa có hạt màu này trong khay. Gỡ các mảng hạt sai màu để lấy hạt.", 2500)
+			_say("Khay đã đầy. Hãy đặt bớt hạt trong khay vào chỗ trống.", 2500)
 	_refresh()
 	return r
 
@@ -331,19 +359,30 @@ func _say(text: String, ms: int) -> void:
 # --- actions -------------------------------------------------------------------------------------------------
 
 func _on_hint() -> void:
-	var probe = state.duplicate_state()
-	var m: int = SortPuzzle.best_move(probe)
-	if m < 0:
+	var m: Dictionary = SortPuzzle.best_move(state.duplicate_state())
+	if m.is_empty():
 		_say("Không còn nước đi. Hãy bấm Chơi lại.", 3000)
 		return
-	_hint_cells = state.cover_cluster(m) if state.action_at(m) == "lift" else state.empty_cluster(m)
+	state.clear_selection()
+	_hint_cells = PackedInt32Array()
+	_hint_slots = PackedInt32Array()
+	if m["src_kind"] == "cell":
+		_hint_cells.append_array(state.cover_cluster(m["src"]))
+	else:
+		_hint_slots = state.tray_slots_of(state.tray[m["src"]])
+	if m["dst_kind"] == "cell":
+		_hint_cells.append_array(state.empty_cluster(m["dst"]))
+	else:
+		var t: int = m["dst"] / SortState.TRAY_SLOTS
+		for k in SortState.TRAY_SLOTS:
+			_hint_slots.append(t * SortState.TRAY_SLOTS + k)
 	_hint_until = Time.get_ticks_msec() + 1500
 
 
 func _on_restart() -> void:
 	_flights.clear()
 	_pending_cells.clear()
-	_pending_slots = 0
+	_pending_slots.clear()
 	_overlay.visible = false
 	_new_puzzle(puzzle_seed + 1)
 	_save(true)
@@ -401,7 +440,7 @@ func _process(_delta: float) -> void:
 					feedback.play("place")
 					_last_place_sound = now
 			else:
-				_pending_slots -= 1
+				_pending_slots.erase(f["dest_slot"])
 		else:
 			still.append(f)
 	_flights = still
@@ -435,32 +474,52 @@ func _draw() -> void:
 	if hint_on:
 		for i in _hint_cells:
 			hint[i] = true
+	var lifted := {}
+	if state.sel_kind == "board":
+		for i in state.sel_cells:
+			lifted[i] = true
 	for i in level.cell_count():
 		var t: int = level.cells[i]
 		if t < 0:
 			continue
 		var mid := cell_center(i)
-		if state.cover[i] != SortState.NONE:
+		if state.cover[i] != SortState.NONE and not lifted.has(i):
 			BeadArt.bead(self, mid, r, level.colors[state.cover[i]])
-		elif state.filled[i] == 1 and not _pending_cells.has(i):
-			BeadArt.bead(self, mid, r, level.colors[t])
+		elif state.cover[i] != SortState.NONE or (state.filled[i] == 1 and not _pending_cells.has(i)):
+			BeadArt.bead(self, mid, r, level.colors[t])   # a lifted cover shows the correct bead underneath
 		else:
 			BeadArt.hollow(self, mid, r, level.colors[t])
 		if hint.has(i):
 			draw_arc(mid, r * 1.05, 0, TAU, 16, Color(1, 1, 1, 0.95), maxf(1.5, r * 0.25))
+	# the selected cover beads float above the board
+	var bob := Vector2(0, sin(now * 0.006) * r * 0.12)
+	for i in lifted:
+		draw_circle(cell_center(i) + Vector2(0, r * 0.25), r * 0.9, Color(0, 0, 0, 0.18))
+	for i in lifted:
+		BeadArt.bead(self, cell_center(i) + _lift_offset() + bob, r * 1.12, level.colors[state.sel_color])
 	# trays
 	var shake := sin(now * 0.08) * 4.0 if now < _shake_until else 0.0
 	var tw := _tray_rect.size.x / SortState.TRAY_COUNT
 	for t in SortState.TRAY_COUNT:
 		var rect := Rect2(_tray_rect.position + Vector2(t * tw + 3 + shake, 0), Vector2(tw - 6, _tray_rect.size.y))
 		draw_style_box(_tray_box(), rect)
-	var visible_slots: int = state.tray.size() - _pending_slots
+	var hint_slots := {}
+	if hint_on:
+		for s in _hint_slots:
+			hint_slots[s] = true
+	var sr := slot_radius()
 	for s in SortState.CAPACITY:
 		var c := slot_center(s) + Vector2(shake, 0)
-		if s < visible_slots:
-			BeadArt.bead(self, c, slot_radius(), level.colors[state.tray[s]])
+		var col: int = state.tray[s]
+		if col == SortState.NONE or _pending_slots.has(s):
+			draw_circle(c, sr * 0.9, Color(0.86, 0.84, 0.82))
+		elif state.sel_kind == "tray" and col == state.sel_color:
+			draw_circle(c + Vector2(0, sr * 0.3), sr * 0.85, Color(0, 0, 0, 0.18))
+			BeadArt.bead(self, c - Vector2(0, sr * 0.45) + bob, sr * 1.12, level.colors[col])
 		else:
-			draw_circle(c, slot_radius() * 0.9, Color(0.86, 0.84, 0.82))
+			BeadArt.bead(self, c, sr, level.colors[col])
+		if hint_slots.has(s):
+			draw_arc(c, sr * 1.1, 0, TAU, 16, Color(1, 1, 1, 0.95), maxf(1.5, sr * 0.25))
 	# flying beads, arcing upwards
 	for f in _flights:
 		var u := clampf((now - int(f["start"])) / FLY_MS, 0.0, 1.0)
@@ -471,6 +530,10 @@ func _draw() -> void:
 		var b: Vector2 = f["to"]
 		var p := a.lerp(b, e) + Vector2(0, -sin(e * PI) * 40.0)
 		BeadArt.bead(self, p, maxf(r, slot_radius()) * (1.0 + 0.25 * sin(e * PI)), level.colors[f["color"]])
+
+
+func _lift_offset() -> Vector2:
+	return Vector2(0, -_cell * 0.35)
 
 
 static var _box: StyleBoxFlat

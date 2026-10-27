@@ -30,7 +30,7 @@ godot --path .
 | Giao thức ghi, bảng WE/WK, bước R, đường U, `save_blocked` (GS-12.2, 12.7) | `game/save/progress_writer.gd` | TC-12.7, 12.12–12.21, 12.34, 12.42, 12.49, 12.55 |
 | Khôi phục E0–E3, lưu trữ, thông báo `.bak` (GS-13.3–13.15) | `game/save/restore.gd` | TC-13.4–13.6, 13.12, 13.13, 13.17, 13.22, 13.24, 13.28, 13.31, 13.32, 12.13, 12.56 |
 | Outbox, kho sự kiện, bộ chuyển, file `.pending-*` (mục 14) | `game/save/progress_session.gd`, `game/events/*.gd`, `game/save/pending_scan.gd` | TC-14.4, 14.9, 14.15, 14.22–14.30, 4.6/14.2 |
-| Chế độ "Gỡ hạt" (ngoài đặc tả, theo video tham khảo): luật, bộ sinh đề có kiểm tra giải được, màn chơi, lưu riêng file `<id>.sort` | `game/core/sort_state.gd`, `game/core/sort_puzzle.gd`, `game/scenes/sort_play.gd` | `test_sort_mode.gd` (bảo toàn hạt, giải được, chơi ngẫu nhiên, lưu/đọc) |
+| Chế độ "Gỡ hạt" (ngoài đặc tả, theo video tham khảo): luật chọn → đích, khay 54 ô cố định, bộ sinh đề có kiểm tra giải được, màn chơi, lưu riêng file `<id>.sort` | `game/core/sort_state.gd`, `game/core/sort_puzzle.gd`, `game/scenes/sort_play.gd` | `test_sort_mode.gd` (chạm 1 chỉ chọn, đặt/cất khay, phần dư giữ chọn, bảo toàn hạt, giải được, chơi ngẫu nhiên, lưu/đọc, màn chơi mở lại) |
 | Lưu thật qua `GodotFileBackend` (Linux) | `game/storage/godot_file_backend.gd` | `test_persistence.gd` |
 
 ## Chưa hiện thực hoặc mới làm một phần

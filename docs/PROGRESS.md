@@ -21,7 +21,7 @@ Game Pixel Bead Art ASMR, ưu tiên iPhone, iPad làm sau.
 | Probe | `tools/probes/godot_storage/` (hành vi lưu trữ của Godot 4.4.1 trên Linux) | `2eeb09b` |
 | Catalog + hash | `tools/level_hash.py`, `tools/build_catalog.py`, `content/catalog.json`, fixture dùng chung | `dac35bc` |
 | Game Godot (demo chơi được) | Project ở gốc repo, code trong `game/`: luật chơi, màn chơi, lưu/khôi phục theo đặc tả, sự kiện | xem `git log` |
-| Chế độ "Gỡ hạt" | Lối chơi theo video tham khảo (Jewel Color Sort): gỡ mảng hạt sai màu, hạt bay vào chỗ trống cùng màu hoặc xuống 6 khay × 9 ô; chế độ mặc định của demo | xem `git log` |
+| Chế độ "Gỡ hạt" | Lối chơi theo video tham khảo (Jewel Color Sort), hai lần chạm: chạm mảng hạt sai màu (hoặc hạt trong khay) để nhấc lên, rồi chạm chỗ trống cùng màu để đặt hoặc chạm khay để cất tạm (6 khay × 9 ô, có sẵn một phần hạt lúc bắt đầu); chế độ mặc định của demo | xem `git log` |
 
 Các báo cáo từng bước nằm trong `docs/history/`.
 
@@ -61,7 +61,7 @@ Danh sách chi tiết những gì đã làm và chưa làm so với đặc tả:
 python3 -B -m unittest discover -s tools/tests -p 'test_*.py'
 python3 tools/build_catalog.py --check
 
-# Test Godot 4.4.1 headless (127 test, đạt ngày 2026-10-27)
+# Test Godot 4.4.1 headless (129 test, đạt ngày 2026-10-27)
 godot --headless --path . -s res://game/tests/run_unit.gd
 
 # Kiểm tra level

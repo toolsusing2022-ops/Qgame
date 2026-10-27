@@ -27,8 +27,9 @@ var _help: Label
 var _mode_buttons := {}
 
 const HELP := {
-	"sort": "Bức tranh có những mảng hạt sai màu và những chỗ còn trống. Chạm vào mảng hạt sai màu để gỡ: hạt "
-		+ "tự bay vào chỗ trống cùng màu, phần dư xuống khay. Chạm vào chỗ trống để lấy hạt từ khay lấp vào.",
+	"sort": "Bức tranh có những mảng hạt sai màu và những chỗ còn trống. Chạm một mảng hạt sai màu để nhấc lên, "
+		+ "rồi chạm chỗ trống cùng màu để đặt vào, hoặc chạm khay để cất tạm. Chạm hạt trong khay rồi chạm chỗ trống "
+		+ "để lấy ra.",
 	"paint": "Chọn một màu ở khay, rồi chạm vào các ô có cùng số. Ô nhỏ quá thì chạm để phóng to; "
 		+ "kéo để di chuyển, chụm hai ngón (hoặc lăn chuột) để zoom.",
 }
