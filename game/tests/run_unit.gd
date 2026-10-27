@@ -21,7 +21,7 @@ func _init() -> void:
 	var failed := 0
 	for name in files:
 		var script: GDScript = load(UNIT_DIR.path_join(name))
-		if script == null:
+		if script == null or not script.can_instantiate():
 			print("FAIL %s: script failed to load" % name)
 			failed += 1
 			continue

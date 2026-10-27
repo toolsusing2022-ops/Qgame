@@ -21,6 +21,7 @@ Game Pixel Bead Art ASMR, ưu tiên iPhone, iPad làm sau.
 | Probe | `tools/probes/godot_storage/` (hành vi lưu trữ của Godot 4.4.1 trên Linux) | `2eeb09b` |
 | Catalog + hash | `tools/level_hash.py`, `tools/build_catalog.py`, `content/catalog.json`, fixture dùng chung | `dac35bc` |
 | Game Godot (demo chơi được) | Project ở gốc repo, code trong `game/`: luật chơi, màn chơi, lưu/khôi phục theo đặc tả, sự kiện | xem `git log` |
+| Chế độ "Gỡ hạt" | Lối chơi theo video tham khảo (Jewel Color Sort): gỡ mảng hạt sai màu, hạt bay vào chỗ trống cùng màu hoặc xuống 6 khay × 9 ô; chế độ mặc định của demo | xem `git log` |
 
 Các báo cáo từng bước nằm trong `docs/history/`.
 
@@ -48,7 +49,8 @@ cp -r build/web build/web_split && python3 tools/web/package_web.py build/web_sp
 1. **Âm thanh**: đã có bộ tạm (Kenney CC0 + âm tự tạo); thay bằng file của bạn trong `game/audio/<tên>/` khi có.
 2. **Mac + iPhone** (đang chuẩn bị) → export iOS, test cấp D (Phần B của v0.4.9).
 3. Duyệt đặc tả **v0.4.9**.
-4. Ảnh thumbnail 96 px của Easy vẫn nhỏ: mặt chỉ còn vài chấm.
+4. Chọn hướng chính: đặc tả v0.4.9 mô tả lối "tô theo số"; chế độ "Gỡ hạt" chưa có đặc tả. Cần quyết định có viết đặc tả cho "Gỡ hạt" (độ khó, số khay, luật thua/kẹt) hay giữ cả hai chế độ.
+5. Ảnh thumbnail 96 px của Easy vẫn nhỏ: mặt chỉ còn vài chấm.
 
 Danh sách chi tiết những gì đã làm và chưa làm so với đặc tả: `docs/IMPLEMENTATION_STATUS.md`.
 
@@ -59,7 +61,7 @@ Danh sách chi tiết những gì đã làm và chưa làm so với đặc tả:
 python3 -B -m unittest discover -s tools/tests -p 'test_*.py'
 python3 tools/build_catalog.py --check
 
-# Test Godot 4.4.1 headless (119 test, đạt ngày 2026-10-25)
+# Test Godot 4.4.1 headless (127 test, đạt ngày 2026-10-27)
 godot --headless --path . -s res://game/tests/run_unit.gd
 
 # Kiểm tra level

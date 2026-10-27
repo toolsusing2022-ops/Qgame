@@ -30,6 +30,7 @@ godot --path .
 | Giao thức ghi, bảng WE/WK, bước R, đường U, `save_blocked` (GS-12.2, 12.7) | `game/save/progress_writer.gd` | TC-12.7, 12.12–12.21, 12.34, 12.42, 12.49, 12.55 |
 | Khôi phục E0–E3, lưu trữ, thông báo `.bak` (GS-13.3–13.15) | `game/save/restore.gd` | TC-13.4–13.6, 13.12, 13.13, 13.17, 13.22, 13.24, 13.28, 13.31, 13.32, 12.13, 12.56 |
 | Outbox, kho sự kiện, bộ chuyển, file `.pending-*` (mục 14) | `game/save/progress_session.gd`, `game/events/*.gd`, `game/save/pending_scan.gd` | TC-14.4, 14.9, 14.15, 14.22–14.30, 4.6/14.2 |
+| Chế độ "Gỡ hạt" (ngoài đặc tả, theo video tham khảo): luật, bộ sinh đề có kiểm tra giải được, màn chơi, lưu riêng file `<id>.sort` | `game/core/sort_state.gd`, `game/core/sort_puzzle.gd`, `game/scenes/sort_play.gd` | `test_sort_mode.gd` (bảo toàn hạt, giải được, chơi ngẫu nhiên, lưu/đọc) |
 | Lưu thật qua `GodotFileBackend` (Linux) | `game/storage/godot_file_backend.gd` | `test_persistence.gd` |
 
 ## Chưa hiện thực hoặc mới làm một phần
@@ -50,4 +51,5 @@ godot --path .
 
 - **GS-2.2:** Godot đọc mọi số JSON thành `float`, nên `1.0` được chấp nhận (đúng với GS-2.2), trong khi `validate_level.py` từ chối. Khoá JSON trùng nhau cũng chỉ bị Python bắt. Pipeline nội dung luôn chạy Python trước.
 - **GS-13.4 giai đoạn A:** các kiểm tra phụ thuộc bố cục (độ dài bitset, hạt trên ô `-1`, `selected` ngoài phạm vi) chạy **sau** khi `layout_hash` đã khớp. Nhờ vậy bản lưu của bố cục cũ được báo là `stale_layout_changed` thay vì `invalid`.
+- **Chế độ "Gỡ hạt"** không có trong đặc tả v0.4.9. Bản lưu của nó dùng lại `ProgressWriter` (ghi nguyên tử + `.bak`) nhưng không qua giai đoạn khôi phục E0–E3; bản lưu hỏng hoặc khác `content_hash` thì sinh đề mới.
 - **Số trên ô và swatch** hiển thị theo `id + 1` (bắt đầu từ 1) cho dễ đọc.

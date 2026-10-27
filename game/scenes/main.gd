@@ -10,6 +10,7 @@ const Dispatcher := preload("res://game/events/dispatcher.gd")
 const Settings := preload("res://game/save/settings.gd")
 const PendingScan := preload("res://game/save/pending_scan.gd")
 const LevelThumb := preload("res://game/scenes/level_thumb.gd")
+const SortPlay := preload("res://game/scenes/sort_play.gd")
 
 const CATALOG_PATH := "res://content/catalog.json"
 const PROGRESS_DIR := "user://progress"
@@ -21,6 +22,16 @@ var settings
 var _list: VBoxContainer
 var _message: Label
 var _play: Control
+var mode := "sort"                # "sort" (Gỡ hạt, default) | "paint" (Tô theo số)
+var _help: Label
+var _mode_buttons := {}
+
+const HELP := {
+	"sort": "Bức tranh có những mảng hạt sai màu và những chỗ còn trống. Chạm vào mảng hạt sai màu để gỡ: hạt "
+		+ "tự bay vào chỗ trống cùng màu, phần dư xuống khay. Chạm vào chỗ trống để lấy hạt từ khay lấp vào.",
+	"paint": "Chọn một màu ở khay, rồi chạm vào các ô có cùng số. Ô nhỏ quá thì chạm để phóng to; "
+		+ "kéo để di chuyển, chụm hai ngón (hoặc lăn chuột) để zoom.",
+}
 
 
 func _ready() -> void:
@@ -53,13 +64,26 @@ func _ready() -> void:
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", Color("#2b2622"))
 	_list.add_child(title)
+	var modes := HBoxContainer.new()
+	modes.add_theme_constant_override("separation", 8)
+	_list.add_child(modes)
+	for pair in [["sort", "Gỡ hạt"], ["paint", "Tô theo số"]]:
+		var mb := Button.new()
+		mb.text = pair[1]
+		mb.toggle_mode = true
+		mb.custom_minimum_size = Vector2(0, 44)
+		mb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var m: String = pair[0]
+		mb.pressed.connect(func(): _set_mode(m))
+		modes.add_child(mb)
+		_mode_buttons[m] = mb
 	var help := Label.new()
-	help.text = "Chọn một màu ở khay, rồi chạm vào các ô có cùng số. Ô nhỏ quá thì chạm để phóng to; " \
-		+ "kéo để di chuyển, chụm hai ngón (hoặc lăn chuột) để zoom."
+	_help = help
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.add_theme_color_override("font_color", Color("#5a524b"))
 	help.add_theme_font_size_override("font_size", 14)
 	_list.add_child(help)
+	_set_mode(mode)
 	for entry in _load_catalog():
 		_add_level_button(entry)
 	_message = Label.new()
@@ -107,8 +131,25 @@ func _add_level_button(entry: Dictionary) -> void:
 	_list.add_child(b)
 
 
+func _set_mode(m: String) -> void:
+	mode = m
+	_help.text = HELP[m]
+	for k in _mode_buttons:
+		_mode_buttons[k].button_pressed = k == m
+
+
 func open_level(path: String, entry := {"content_version": 1}) -> void:
 	_message.text = ""
+	if mode == "sort":
+		_play = SortPlay.new()
+		add_child(_play)
+		_play.exit_requested.connect(_close_level)
+		if not await _play.open_level(path, backend, settings, PROGRESS_DIR):
+			_message.text = "Không mở được tranh này"
+			_close_level()
+			return
+		_list.get_parent().visible = false
+		return
 	_play = Play.new()
 	add_child(_play)
 	_play.exit_requested.connect(_close_level)
